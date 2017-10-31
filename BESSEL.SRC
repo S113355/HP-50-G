@@ -1,0 +1,672 @@
+%%HP: T(3)A(D)F(.);
+DIR
+@ BESSEL by Mark A. Ordal
+@ ----------------------------------------------------------------------
+@
+@                J (x), Y (x), I (x), and K (x)
+@                 n      n      n          n
+@
+@ ----------------------------------------------------------------------
+@  Integer order Bessel Functions of the first and second kinds and
+@  integer order Modified Bessel Functions of the first and second kinds
+@  for non-negative integer order and non-negative real argument.
+@ ----------------------------------------------------------------------
+@ HP48 programs by Dr. Mark A. Ordal, North Dakota State University,
+@ Physics Department, Fargo, ND, 58105
+@ NU123952@NDSUVM1
+@ revision of April 25, 1991
+@ ----------------------------------------------------------------------
+@ This is the ASCII listing (translate 3 mode) of a directory that
+@ contains the following:
+@
+@    Programs:
+@        Jnx, NRJN, ASJ1, and ASJ0      (Bessel: first kind)
+@        Ynx, NRYN, ASY1, and ASY0      (Bessel: second kind)
+@        Inx, NRIN, ASI1, and ASI0      (Modified Bessel: first kind)
+@        Knx, NRKN, ASK1, and ASK0      (Modified Bessel: second kind)
+@
+@    Subroutines: JYIK, JY1, and JY0
+@
+@ NOTE: These programs do not prevent you from entering an invalid order
+@       or argument.
+@
+@ When named BESSINT, running the Bytes command on the name of this
+@ directory returns:  Checksum  #18596 and 4558 bytes.
+@ ----------------------------------------------------------------------
+@ Changes from previous version:
+@   1) Programs ASJ0, ASJ1, ASY0, and ASY1 preserve the state of system
+@      flags (e.g., the DEG or RAD modes).
+@
+@   2) Subroutine JYIK was made 4.5 bytes smaller by using a START-NEXT
+@      LOOP instead of a FOR-NEXT loop.
+@ ----------------------------------------------------------------------
+Jnx
+@ ----------------------------------------------------------------------
+@ Bessel Functions of the FIRST kind and integer order
+@
+@ To use:
+@ Level 2 of stack: order (a nonnegative integer)
+@ Level 1 of stack: argument (any nonnegative real number)
+@
+@ When named Jnx, the BYTES command returns #51151 and 123.5 bytes
+@ ----------------------------------------------------------------------
+  Jnx
+    \<< \-> n x
+      \<<
+        CASE n 0
+SAME
+          THEN x
+ASJ0
+          END n 1
+SAME
+          THEN x
+ASJ1
+          END n x
+NRJN
+        END
+      \>>
+    \>>
+  Ynx
+@ ----------------------------------------------------------------------
+@ Bessel Functions of the SECOND kind and integer order
+@
+@ To use:
+@ Level 2 of stack: order (a nonnegative integer)
+@ Level 1 of stack: argument (any positive real number)
+@
+@ Remember that Yn(x) is infinite for x=0
+@
+@ When named Ynx, the BYTES command returns #18975 and 123.5 bytes
+@ ----------------------------------------------------------------------
+    \<< \-> n x
+      \<<
+        CASE n 0
+SAME
+          THEN x
+ASY0
+          END n 1
+SAME
+          THEN x
+ASY1
+          END n x
+NRYN
+        END
+      \>>
+    \>>
+  Inx
+@ ----------------------------------------------------------------------
+@ Modified Bessel Functions of the FIRST kind and integer order
+@
+@ To use:
+@ Level 2 of stack: order (a nonnegative integer)
+@ Level 1 of stack: argument (any nonnegative real number)
+@
+@ When named Inx, the BYTES command returns #30214d and 123.5 bytes
+@ ----------------------------------------------------------------------
+    \<< \-> n x
+      \<<
+        CASE n 0
+SAME
+          THEN x
+ASI0
+          END n 1
+SAME
+          THEN x
+ASI1
+          END n x
+NRIN
+        END
+      \>>
+    \>>
+  Knx
+@ ----------------------------------------------------------------------
+@ Modifed Bessel Functions of the SECOND kind and integer order
+@
+@ To use:
+@ Level 2 of stack: order (a nonnegative integer)
+@ Level 1 of stack: argument (any positive real number)
+@
+@ Remember that Kn(x) is infinite for x=0
+@
+@ When named Knx, the BYTES command returns #20615d and 123.5 bytes
+@ ----------------------------------------------------------------------
+    \<< \-> n x
+      \<<
+        CASE n 0
+SAME
+          THEN x
+ASK0
+          END n 1
+SAME
+          THEN x
+ASK1
+          END n x
+NRKN
+        END
+      \>>
+    \>>
+  NRJN
+@ ----------------------------------------------------------------------
+@ Bessel Functions of the FIRST kind and integer order n > 1
+@ calculated using the RPL equivalent of the "Numerical Recipes"
+@ program BESSJ.  Needs the equivalent of the "Numerical Recipes"
+@ programs BESSJ0 and BESSJ1.  In this case, programs ASJ0 and ASJ1
+@ are used instead -- based on Abramowitz and Stegun Eqs 9.4.1 and
+@ 9.4.3 for order zero and Eqs 9.4.4 and 9.4.6 for order one.
+@
+@ The programs ASJ0 and ASJ1 based on the Abramowitz and Stegun
+@ equations are shorter and faster than RPL equivalents of BESSJ0
+@ and BESSJ1.)
+@
+@ To use:
+@ Level 2 of stack: order (a positive integer > 1)
+@ Level 1 of stack: argument (any nonnegative real number)
+@
+@ The "Numerical Recipes" program variables TOX, SUM, BIGNO, BIGNI,
+@ and BESSJ have been replaced by t, s, u, d, and sj, respectively.
+@ Variable IACC has been replaced by its value of 40.
+@
+@ When named NRJN, the BYTES command returns #18067d and 657 bytes
+@
+@ To adapt for use on the HP28S, replace the commands 'm' DECR with
+@ the equivalent sequence m 1 - 'm' STO m
+@ ----------------------------------------------------------------------
+    \<< 10000000000
+.0000000001 0 0 0 0
+\-> n x u d t m s sj
+      \<< 2 x / 't'
+STO
+        IF x n >
+        THEN x ASJ0
+x ASJ1 1 n 1 -
+          FOR j j t
+* OVER * 3 PICK -
+ROT DROP
+          NEXT SWAP
+DROP
+        ELSE 40 n *
+\v/ IP n + 2 / IP 2 *
+'m' STO 0 1 m
+          DO t *
+OVER * 3 PICK - ROT
+DROP
+            IF DUP
+ABS u >
+            THEN d
+* SWAP d * SWAP d
+DUP 'sj' STO* 's'
+STO*
+            END
+            IF m n
+SAME
+            THEN
+OVER 'sj' STO
+            END 'm'
+DECR t * OVER * 3
+PICK - ROT DROP
+            IF DUP
+ABS u >
+            THEN d
+* SWAP d * SWAP d
+DUP 'sj' STO* 's'
+STO*
+            END
+            IF m n
+SAME
+            THEN
+OVER 'sj' STO
+            END DUP
+'s' STO+ 'm' DECR
+          UNTIL m 1
+<
+          END DROP
+SWAP DROP NEG s 2 *
++ sj SWAP /
+        END
+      \>>
+    \>>
+  NRYN
+@ ----------------------------------------------------------------------
+@ Bessel Functions of the SECOND kind and integer order n > 1
+@ calculated using the RPL equivalent of the "Numerical Recipes"
+@ program BESSY.  Needs the equivalent of the "Numerical Recipes"
+@ programs BESSY0 and BESSY1.  In this case, programs ASY0 and ASY1
+@ are used instead -- based on Abramowitz and Stegun Eqs 9.4.1 and
+@ 9.4.3 for order zero and Eqs 9.4.4 and 9.4.6 for order one.
+@
+@ The programs ASY0 and ASY1 based on the Abramowitz and Stegun
+@ equations are shorter and faster than RPL equivalents of BESSY0
+@ and BESSY1.)
+@
+@ To use:
+@ Level 2 of stack: order (a positive integer > 1)
+@ Level 1 of stack: argument (any positive real number)
+@
+@ The "Numerical Recipes" program variable TOX has been replaced by t.
+@ Variable IACC has been replaced by its value of 40.
+@
+@ When named NRYN, the BYTES command returns #16760 and 143 bytes
+@ ----------------------------------------------------------------------
+    \<< 0 \-> n x t
+      \<< 2 x / 't'
+STO x ASY0 x ASY1 1
+n 1 -
+        FOR j j t *
+OVER * 3 PICK - ROT
+DROP
+        NEXT SWAP
+DROP
+      \>>
+    \>>
+  NRIN
+@ ----------------------------------------------------------------------
+@ Modified Bessel Functions of the FIRST kind and integer order n > 1
+@ calculated using the RPL equivalent of the "Numerical Recipes"
+@ program BESSI.  Needs the equivalent of the "Numerical Recipes"
+@ programs BESSI0 and BESSI1.  These programs (renamed ASJ0 and ASJ1)
+@ are based on Abramowitz and Stegun Eqs 9.8.1 and 9.8.2 for order zero
+@ and Eqs 9.8.3 and 9.8.4 for order one.
+@
+@ To use:
+@ Level 2 of stack: order (a positive integer > 1)
+@ Level 1 of stack: argument (any nonnegative real number)
+@
+@ The "Numerical Recipes" program variables TOX, BIGNO, BIGNI,
+@ and BESSI have been replaced by t, u, d, and si, respectively.
+@ Variable IACC has been replaced by its value of 40.
+@
+@ When named NRIN, the BYTES command returns #9623d and 315 bytes
+@ ----------------------------------------------------------------------
+    \<< 10000000000
+.0000000001 0 0 \-> n
+x u d t si
+      \<< 2 x / 't'
+STO 0 1 40 n * \v/ IP
+n + 2 * 1
+        FOR j j t *
+OVER * 3 PICK + ROT
+DROP
+          IF DUP
+ABS u >
+          THEN d *
+SWAP d * SWAP d
+'si' STO*
+          END
+          IF j n
+SAME
+          THEN OVER
+'si' STO
+          END -1
+        STEP SWAP
+DROP si SWAP / x
+ASI0 *
+      \>>
+    \>>
+  NRKN
+@ ----------------------------------------------------------------------
+@ Modifed Bessel Functions of the SECOND kind and integer order n > 1
+@ calculated using the RPL equivalent of the "Numerical Recipes"
+@ program BESSK.  Needs the equivalent of the "Numerical Recipes"
+@ programs BESSK0 and BESSK1.  These programs (renamed ASK0 and ASK1)
+@ are based on Abramowitz and Stegun Eqs 9.8.5 and 9.8.6 for order zero
+@ and Eqs 9.8.7 and 9.8.8 for order one.
+@
+@ To use:
+@ Level 2 of stack: order (a positive integer > 1)
+@ Level 1 of stack: argument (any positive real number)
+@
+@ The "Numerical Recipes" program variables TOX, BIGNO, BIGNI,
+@ and BESSK have been replaced by t, u, d, and sk, respectively.
+@
+@ When named NRKN, the BYTES command returns #20286d and 181 bytes
+@ ----------------------------------------------------------------------
+    \<< 10000000000
+.0000000001 0 0 \-> n
+x u d t sk
+      \<< 2 x / 't'
+STO x ASK0 x ASK1 1
+n 1 -
+        FOR j j t *
+OVER * 3 PICK + ROT
+DROP
+        NEXT SWAP
+DROP
+      \>>
+    \>>
+  ASJ1
+@ ----------------------------------------------------------------------
+@ Bessel Functions of t4e FIRST kind and order one calculated
+@ using Abramowitz and Stegun Eqs 9.4.4 and 9.4.6
+@
+@ This program is slightly shorter and faster than the RPL equivalent
+@ of the "Numerical Recipes" program BESSJ1.
+@
+@ This program program calls programs JYIK and JY1.
+@
+@ To use:
+@ Level 1 of stack: argument (any nonnegative real number)
+@
+@ When named ASJ1, the BYTES command returns #49835d and 213.5 bytes
+@ ----------------------------------------------------------------------
+    \<< 0 RCLF \-> x a
+ff
+      \<<
+        IF x 3 <
+        THEN .5
+-.56249985
+.21093573
+-.03954289
+.00443319
+-.00031761
+.00001109 x 3 / SQ
+6 JYIK x *
+        ELSE x JY1
+RAD COS * x \v/ /
+        END ff STOF
+      \>>
+    \>>
+  ASY1
+@ ----------------------------------------------------------------------
+@ Bessel Functions of the SECOND kind and order one calculated
+@ using Abramowitz and Stegun Eqs 9.4.4 and 9.4.6
+@
+@ This program is slightly shorter and faster than the RPL equivalent
+@ of the "Numerical Recipes" program BESSY1.
+@
+@ This program program calls programs JYIK, JY1, and ASJ1.
+@
+@ To use:
+@ Level 1 of stack: argument (any positive real number)
+@
+@ When named ASY1, the BYTES command returns #1027d and 270 bytes
+@ ----------------------------------------------------------------------
+    \<< 0 RCLF \-> x a
+ff
+      \<<
+        IF x 3 <
+        THEN
+-.6366198 .2212091
+2.1682709
+-1.3164827 .3123951
+-.0400976 .0027873
+x 3 / SQ 6 JYIK x
+ASJ1 x .5 * LN * x
+* 2 * \pi \->NUM / + x
+/
+        ELSE x JY1
+RAD SIN * x \v/ /
+        END ff STOF
+      \>>
+    \>>
+  ASI1
+@ ----------------------------------------------------------------------
+@ Modifed Bessel Functions of the FIRST kind and order one calculated
+@ using Abramowitz and Stegun Eqs 9.8.3 and 9.8.4
+@
+@ To use:
+@ Level 1 of stack: argument (any nonnegative real number)
+@
+@ This program program calls program JYIK
+@
+@ When named ASI1, the BYTES command returns #12477d and 334.5 bytes
+@ ----------------------------------------------------------------------
+    \<< 0 \-> x a
+      \<<
+        IF x ABS
+3.75 <
+        THEN .5
+.87890594 .51498869
+.15084934 .02658733
+.00301532 .00032411
+x 3.75 / SQ 6 JYIK
+x *
+        ELSE
+.39894228
+-.03988024
+-.00362018
+.00163801
+-.01031555
+.02282967
+-.02895312
+.01787654
+-.00420059 3.75 x
+ABS / 8 JYIK x ABS
+DUP EXP SWAP \v/ / *
+        END
+      \>>
+    \>>
+  ASK1
+@ ----------------------------------------------------------------------
+@ Modifed Bessel Functions of the SECOND kind and order one calculated
+@ using Abramowitz and Stegun Eqs 9.8.7 and 9.8.8
+@
+@ This program program calls programs JYIK and ASI1.
+@
+@ To use:
+@ Level 1 of stack: argument (any positive real number)
+@
+@ When named ASK1, the BYTES command returns #54561d and 308 bytes
+@ ----------------------------------------------------------------------
+    \<< 0 \-> x a
+      \<<
+        IF x ABS 2
+<
+        THEN 1
+.15443144
+-.67278579
+-.18156897
+-.01919402
+-.00110404
+-.00004686 x 2 / SQ
+6 JYIK x / x ASI1 x
+2 / LN * +
+        ELSE
+1.25331414
+.23498619 -.0365562
+.01504268
+-.00780353
+.00325614
+-.00068245 2 x / 6
+JYIK x DUP NEG EXP
+SWAP \v/ / *
+        END
+      \>>
+    \>>
+  ASJ0
+@ ----------------------------------------------------------------------
+@ Bessel Functions of the FIRST kind and order zero calculated
+@ using Abramowitz and Stegun Eqs 9.4.1 and 9.4.3
+@
+@ This program is slightly shorter and faster than the RPL equivalent
+@ of the "Numerical Recipes" program BESSJ0.
+@ This program program calls programs JYIK and JY0.
+@
+@ To use:
+@ Level 1 of stack: argument (any nonnegative real number)
+@
+@ When named ASJ0, the BYTES command returns #1504d and 198.5 bytes
+@ ----------------------------------------------------------------------
+    \<< 0 RCLF \-> x a
+ff
+      \<<
+        IF x 3 <
+        THEN 1
+-2.2499997
+1.2656208 -.3163866
+.0444479 -.0039444
+.00021 x 3 / SQ 6
+JYIK
+        ELSE x JY0
+RAD COS * x \v/ /
+        END ff STOF
+      \>>
+    \>>
+  ASY0
+@ ----------------------------------------------------------------------
+@ Bessel Functions of the SECOND kind and order zero calculated
+@ using Abramowitz and Stegun Eqs 9.4.1 and 9.4.3
+@
+@ This program is slightly shorter and faster than the RPL equivalent
+@ of the "Numerical Recipes" program BESSY0.
+@ This program program calls programs JYIK, JY0, and ASJ0.
+@
+@ To use:
+@ Level 1 of stack: argument (any nonnegative real number)
+@
+@ When named ASY0, the BYTES command returns #37606d and 256 bytes
+@ ----------------------------------------------------------------------
+    \<< 0 RCLF \-> x a
+ff
+      \<<
+        IF x 3 <
+        THEN
+.36746691 .60559366
+-.74350384
+.25300117
+-.04261214
+.00427916
+-.00024846 x 3 / SQ
+6 JYIK x ASJ0 x .5
+* LN * 2 * \pi \->NUM /
++
+        ELSE x JY0
+RAD SIN * x \v/ /
+        END ff STOF
+      \>>
+    \>>
+  ASI0
+@ ----------------------------------------------------------------------
+@ Modifed Bessel Functions of the FIRST kind and order zero calculated
+@ using Abramowitz and Stegun Eqs 9.8.1 and 9.8.2
+@
+@ To use:
+@ Level 1 of stack: argument (any nonnegative real number)
+@
+@ This program program calls program JYIK
+@
+@ When named ASI0, the BYTES command returns #63274 and 319.5 bytes
+@ ----------------------------------------------------------------------
+    \<< 0 \-> x a
+      \<<
+        IF x ABS
+3.75 <
+        THEN 1
+3.5156229 3.0899424
+1.2067492 .2659732
+.0360768 .0045813 x
+3.75 / SQ 6 JYIK
+        ELSE
+.39894228 .01328592
+.00225319
+-.00157565
+.00916281
+-.02057706
+.02635537
+-.01647633
+.00392377 3.75 x
+ABS / 8 JYIK x ABS
+DUP EXP SWAP \v/ / *
+        END
+      \>>
+    \>>
+  ASK0
+@ ----------------------------------------------------------------------
+@ Modifed Bessel Functions of the SECOND kind and order zero calculated
+@ using Abramowitz and Stegun Eqs 9.8.5 and 9.8.6
+@
+@ This program program calls programs JYIK and ASI0.
+@
+@ To use:
+@ Level 1 of stack: argument (any positive real number)
+@
+@ When named ASK0, the BYTES command returns #64307 and 311.5 bytes
+@ ----------------------------------------------------------------------
+    \<< 0 \-> x a
+      \<<
+        IF x ABS 2
+<
+        THEN
+-.57721566 .4227842
+.23069756 .0348859
+.00262698 .0001075
+.0000074 x 2 / SQ 6
+JYIK x ASI0 x 2 /
+LN NEG * +
+        ELSE
+1.25331414
+-.07832358
+.02189568
+-.01062446
+.00587872 -.0025154
+.00053208 2 x / 6
+JYIK x DUP NEG EXP
+SWAP \v/ / *
+        END
+      \>>
+    \>>
+  JYIK
+@ ----------------------------------------------------------------------
+@ Subprogram for use by ASJ0, ASJ1, ASY0, ASY1, ASI0, ASI1, ASK0, and
+@ ASK1
+@
+@ When named JYIK, the BYTES command returns #32125d and 56.5 bytes
+@ ----------------------------------------------------------------------
+    \<< \-> t j
+      \<< 1 j
+        START t * +
+        NEXT
+      \>>
+    \>>
+  JY1
+@ ----------------------------------------------------------------------
+@ Subprogram for use by ASJ1 and ASY1
+@
+@ This program program calls program JYIK
+@
+@ When named JY1, the BYTES command returns #54172d and 241 bytes
+@ ----------------------------------------------------------------------
+    \<< 0 \-> x a
+      \<< 3 x / 'a'
+STO .79788456
+.00000156 .01659667
+.00017105
+-.00249511
+.00113653
+-.00020033 a 6 JYIK
+-2.35619449
+.12499612 .0000565
+-.00637879
+.00074348 .00079824
+-.00029166 a 6 JYIK
+x +
+      \>>
+    \>>
+  JY0
+@ ----------------------------------------------------------------------
+@ Subprogram for use by ASJ0 and ASY0
+@
+@ This program program calls program JYIK
+@
+@ When named JY0.SUB, the BYTES command returns #15249d and 241 bytes
+@ ----------------------------------------------------------------------
+    \<< 0 \-> x a
+      \<< 3 x / 'a'
+STO .79788456
+-.00000077
+-.0055274
+-.00009512
+.00137237
+-.00072805
+.00014476 a 6 JYIK
+-.78539816
+-.04166397
+-.00003954
+.00262573
+-.00054125
+-.00029333
+.00013558 a 6 JYIK
+x +
+      \>>
+    \>>
+END
+
